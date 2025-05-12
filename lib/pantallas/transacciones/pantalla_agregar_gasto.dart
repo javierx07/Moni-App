@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-void main() => runApp(AgregarGasto());
+void main() => runApp(GastoPantalla());
 
-class AgregarGasto extends StatelessWidget {
+class GastoPantalla extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -12,16 +12,42 @@ class AgregarGasto extends StatelessWidget {
   }
 }
 
-class GastoFormPage extends StatelessWidget {
+class GastoFormPage extends StatefulWidget {
+  @override
+  _GastoFormPageState createState() => _GastoFormPageState();
+}
+
+class _GastoFormPageState extends State<GastoFormPage> {
   final TextEditingController descripcionController = TextEditingController();
   final TextEditingController montoController = TextEditingController();
   final TextEditingController fechaController = TextEditingController();
+
   String? categoriaSeleccionada;
+
+  final List<String> categorias = [
+    'Alimentación',
+    'Transporte',
+    'Alquiler',
+    'Facturas',
+    'Teléfono',
+    'Salud',
+    'Higiene',
+    'Educación',
+    'Ocio',
+    'Ropa',
+    'Tecnología',
+    'Viajes',
+    'Otras Compras',
+    'Otros Gastos',
+    'Ahorro',
+    'Mascotas',
+    'Prestamos',
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromRGBO(24, 43, 58, 100), // fondo oscuro
+      backgroundColor: Color.fromRGBO(24, 43, 58, 1),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -46,11 +72,61 @@ class GastoFormPage extends StatelessWidget {
               campoEtiqueta("MONTO:"),
               campoTexto(montoController, "\$0.00", tipo: TextInputType.number),
               campoEtiqueta("FECHA:"),
-              campoTexto(fechaController, "dd/mm/aaaa"),
+              GestureDetector(
+                onTap: () async {
+                  DateTime? fechaSeleccionada = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                    builder: (context, child) {
+                      return Theme(
+                        data: ThemeData.dark().copyWith(
+                          colorScheme: ColorScheme.dark(
+                            primary: Color.fromRGBO(18, 124, 108, 1),
+                            onPrimary: Colors.white,
+                            surface: Color.fromRGBO(36, 64, 88, 1),
+                            onSurface: Colors.white,
+                          ),
+                          dialogBackgroundColor: Color.fromRGBO(24, 43, 58, 1),
+                        ),
+                        child: child!,
+                      );
+                    },
+                  );
+
+                  if (fechaSeleccionada != null) {
+                    String fechaFormateada =
+                        "${fechaSeleccionada.day.toString().padLeft(2, '0')}/${fechaSeleccionada.month.toString().padLeft(2, '0')}/${fechaSeleccionada.year}";
+                    setState(() {
+                      fechaController.text = fechaFormateada;
+                    });
+                  }
+                },
+                child: AbsorbPointer(
+                  child: campoTexto(fechaController, "dd/mm/aaaa"),
+                ),
+              ),
               SizedBox(height: 30),
-              boton("INGRESAR", Color.fromRGBO(18, 124, 108, 100), () {}),
+              boton("INGRESAR", Color.fromRGBO(18, 124, 108, 1), () async {
+                final gasto = Gasto(
+                  descripcion: descripcionController.text,
+                  categoria: categoriaSeleccionada ?? "",
+                  monto: double.tryParse(montoController.text) ?? 0.0,
+                  fecha: fechaController.text,
+                );
+                /* await DBHelper.insertarGasto(gasto);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Gasto guardado correctamente")),
+                );*/
+              }),
               SizedBox(height: 10),
-              boton("ELIMINAR", Color.fromRGBO(153, 79, 98, 100), () {}),
+              boton("ELIMINAR", Color.fromRGBO(153, 79, 98, 1), () {
+                showDialog(
+                  context: context,
+                  builder: (context) => ConfirmacionDialog(),
+                );
+              }),
             ],
           ),
         ),
@@ -79,7 +155,7 @@ class GastoFormPage extends StatelessWidget {
       style: TextStyle(color: Colors.white),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Color.fromRGBO(145, 145, 145, 100)),
+        hintStyle: TextStyle(color: Colors.grey),
         filled: true,
         fillColor: Color.fromRGBO(28, 58, 82, 1),
         border: OutlineInputBorder(
@@ -93,17 +169,17 @@ class GastoFormPage extends StatelessWidget {
   Widget categoriaDropdown() {
     return Container(
       decoration: BoxDecoration(
-        color: Color(0xFF1C3A52),
+        color: Color.fromRGBO(36, 64, 88, 1),
         borderRadius: BorderRadius.circular(15),
       ),
       padding: EdgeInsets.symmetric(horizontal: 12),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          dropdownColor: Color.fromRGBO(36, 64, 88, 100),
+          dropdownColor: Color.fromRGBO(36, 64, 88, 1),
           hint: Text("Seleccionar", style: TextStyle(color: Colors.white)),
           value: categoriaSeleccionada,
           items:
-              ['Comida', 'Transporte', 'Ocio']
+              categorias
                   .map(
                     (e) => DropdownMenuItem(
                       value: e,
@@ -112,7 +188,9 @@ class GastoFormPage extends StatelessWidget {
                   )
                   .toList(),
           onChanged: (value) {
-            // Lógica al seleccionar
+            setState(() {
+              categoriaSeleccionada = value;
+            });
           },
         ),
       ),
@@ -130,5 +208,69 @@ class GastoFormPage extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       ),
     );
+  }
+}
+
+class ConfirmacionDialog extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: Color.fromRGBO(36, 64, 88, 1),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Center(
+        child: Text(
+          '¿Seguro que deseas eliminar?',
+          style: TextStyle(color: Colors.white, fontSize: 16),
+        ),
+      ),
+      actionsAlignment: MainAxisAlignment.center,
+      actions: [
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color.fromRGBO(145, 145, 145, 1),
+            foregroundColor: Colors.white,
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text('CANCELAR'),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color.fromRGBO(153, 79, 98, 1),
+            foregroundColor: Colors.white,
+          ),
+          onPressed: () async {
+            // Aquí puedes usar un ID si implementas edición/borrado real
+            Navigator.of(context).pop();
+          },
+          child: Text('ELIMINAR'),
+        ),
+      ],
+    );
+  }
+}
+
+class Gasto {
+  final int? id;
+  final String descripcion;
+  final String categoria;
+  final double monto;
+  final String fecha;
+
+  Gasto({
+    this.id,
+    required this.descripcion,
+    required this.categoria,
+    required this.monto,
+    required this.fecha,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'descripcion': descripcion,
+      'categoria': categoria,
+      'monto': monto,
+      'fecha': fecha,
+    };
   }
 }
