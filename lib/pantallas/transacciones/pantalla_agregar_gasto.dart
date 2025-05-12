@@ -21,7 +21,7 @@ class GastoFormPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF12293A), // fondo oscuro
+      backgroundColor: Color.fromRGBO(24, 43, 58, 100), // fondo oscuro
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -48,9 +48,9 @@ class GastoFormPage extends StatelessWidget {
               campoEtiqueta("FECHA:"),
               campoTexto(fechaController, "dd/mm/aaaa"),
               SizedBox(height: 30),
-              boton("INGRESAR", Colors.teal, () {}),
+              boton("INGRESAR", Color.fromRGBO(18, 124, 108, 100), () {}),
               SizedBox(height: 10),
-              boton("ELIMINAR", Colors.red.shade400, () {}),
+              boton("ELIMINAR", Color.fromRGBO(153, 79, 98, 100), () {}),
             ],
           ),
         ),
@@ -79,9 +79,9 @@ class GastoFormPage extends StatelessWidget {
       style: TextStyle(color: Colors.white),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey),
+        hintStyle: TextStyle(color: Color.fromRGBO(145, 145, 145, 100)),
         filled: true,
-        fillColor: Color(0xFF1C3A52),
+        fillColor: Color.fromRGBO(28, 58, 82, 1),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
           borderSide: BorderSide.none,
@@ -99,7 +99,7 @@ class GastoFormPage extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 12),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          dropdownColor: Color(0xFF1C3A52),
+          dropdownColor: Color.fromRGBO(36, 64, 88, 100),
           hint: Text("Seleccionar", style: TextStyle(color: Colors.white)),
           value: categoriaSeleccionada,
           items:
